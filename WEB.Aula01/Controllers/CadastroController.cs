@@ -11,13 +11,17 @@ namespace WEB.Aula01.Controllers
         {
         "Matheus", "João", "José", "André", "Maria Luiza", "Louise", "Carlos", "Leonardo", "Antônio", "Ricardo" };
 
+        private static readonly string[] Cpfs = new[]
+{
+        "13373949475", "62395807087", "80781.45090", "20081908032", "05732398007", "12780279044" };
+
         public List<Cadastro> Cadastros { get; set; } = new List<Cadastro>();
 
         public CadastroController()
         {
-            Cadastros = Enumerable.Range(1,6).Select(index => new Cadastro
+            Cadastros = Enumerable.Range(1,5).Select(index => new Cadastro
             {
-                Cpf = Services.GerarCpf(), //CPFRANDOM
+                Cpf = Cpfs[index - 1], //CPFRANDOM
                 NamePeople = Nomes[Random.Shared.Next(Nomes.Length)],
                 Birthday = Services.RandomDay(),
             }
