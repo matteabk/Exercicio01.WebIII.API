@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using WEB.Aula01.Repository;
 
 namespace WEB.Aula01.Controllers
 {
@@ -9,80 +10,70 @@ namespace WEB.Aula01.Controllers
 
     public class CadastroController : ControllerBase
     {
-        private static readonly string[] Nomes = new[]
+        public List<Clientes> Clients { get; set; } = new List<Clientes>();
+
+        public ClientesRepository _repositoryCliente;
+
+        public CadastroController(IConfiguration configuration)
         {
-        "Matheus", "João", "José", "André", "Maria Luiza", "Louise", "Carlos", "Leonardo", "Antônio", "Ricardo" };
-
-        private static readonly string[] Cpfs = new[]
-{
-        "13373949475", "62395807087", "80781.45090", "20081908032", "05732398007", "12780279044" };
-
-        public List<Cadastro> Cadastros { get; set; } = new List<Cadastro>();
-
-        public CadastroController()
-        {
-            Cadastros = Enumerable.Range(1,5).Select(index => new Cadastro
-            {
-                Cpf = Cpfs[Random.Shared.Next(Cpfs.Length)], //CPFRANDOM
-                NamePeople = Nomes[Random.Shared.Next(Nomes.Length)],
-                Birthday = Services.RandomDay(),
-            }
-            ).ToList();
+            _repositoryCliente = new ClientesRepository(configuration);
         }
 
         [HttpPost("clientes/cadastrar")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Cadastro> Post(Cadastro informacoes)
+        public ActionResult<Clientes> Post(Clientes informacoes)
         {
-            Cadastros.Add(informacoes);
-            return StatusCode(201, informacoes);
+            if(!_repositoryCliente.InsertClient(informacoes))
+            {
+                return BadRequest();
+            }
+
+            return CreatedAtAction(nameof(Post), informacoes);
         }
 
         [HttpGet("/clientes")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<List<Cadastro>> Get()
+        public ActionResult<List<Clientes>> Get()
         {
-            return Ok(Cadastros);
+            return Ok(_repositoryCliente.GetClientes());
         }
 
-        [HttpGet("/cadastro/{index}")]
+        [HttpGet("/clientes/{id}")] //FALTA ESSE
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<List<Cadastro>> Get(int index)
+        public ActionResult<Clientes> Get(long id)
         {
-            if (index >= Cadastros.Count || index < 0)
+            if (_repositoryCliente.GetByIndex(id) == null)
             {
                 return NotFound();
             }
-            return Ok(Cadastros[index]);
+            return Ok(_repositoryCliente.GetByIndex(id));
         }
 
         [HttpDelete("Deletar usuário")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Delete(string cpf)
+        public IActionResult Delete(long id)
         {
-            var cadastroSelecionado = Cadastros.RemoveAll(x => x.Cpf == cpf);
-            if(cadastroSelecionado == 0)
+            if(!_repositoryCliente.DeleteProduto(id))
             {
                 return NotFound();
             }
-            return NoContent();   
+            return NoContent();
         }
 
-        [HttpPut("clientes/{cpf}/atualizar")]
+        [HttpPut("clientes/{id}/atualizar")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Put(string cpf, Cadastro cadastroAtualizado)
+        public IActionResult Put(long id, Clientes cadastroAtualizado)
         {
-            var cadastroSelecionado = Cadastros.FindIndex(x => x.Cpf == cpf);
-            if(cadastroSelecionado == -1)
+            if(!_repositoryCliente.UpdateProduto(id, cadastroAtualizado))
             {
-                return NotFound();
+                return BadRequest();
             }
-            Cadastros[cadastroSelecionado] = cadastroAtualizado;
             return NoContent();
+
         }
     }
 }
