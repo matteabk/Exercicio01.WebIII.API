@@ -1,9 +1,12 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using WEB.Aula01.Core.Interfaces;
+using WEB.Aula01.Core.Model;
+using Microsoft.Extensions.Configuration;
 
 namespace WEB.Aula01.Repository
 {
-    public class ClientesRepository
+    public class ClientesRepository : IClientesRepository
     {
         private readonly IConfiguration _configuration;
 
@@ -21,12 +24,24 @@ namespace WEB.Aula01.Repository
             return conn.Query<Clientes>(query).ToList();
         }
 
-        public Clientes GetByIndex(long id)
+        public Clientes GetById(long id)
         {
             var query = "SELECT * FROM Clientes WHERE id = @id";
 
             var parameters = new DynamicParameters();
             parameters.Add("id", id);
+
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return conn.QuerySingleOrDefault<Clientes>(query, parameters);
+        }
+
+        public Clientes GetByCPF (string cpf)
+        {
+            var query = "SELECT * FROM Clientes WHERE cpf = @cpf";
+
+            var parameters = new DynamicParameters();
+            parameters.Add("cpf", cpf);
 
             using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 

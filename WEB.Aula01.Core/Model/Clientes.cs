@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WEB.Aula01
+namespace WEB.Aula01.Core.Model
 {
     public class Clientes
     {
